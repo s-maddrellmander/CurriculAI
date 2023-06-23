@@ -34,6 +34,7 @@ jobs:
       run: |
         black --check .
     - name: Test with pytest
+      working-directory: .
       run: |
         pytest --cov=. --cov-report term --cov-report html
     - name: Upload coverage to Codecov
