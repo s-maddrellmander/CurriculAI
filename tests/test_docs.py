@@ -1,6 +1,6 @@
 import os
 import pytest
-from main import get_docs_for_question_gen, load_pdf_pages
+from documents import get_docs_for_question_gen, load_pdf_pages
 
 
 @pytest.mark.parametrize(
@@ -35,7 +35,7 @@ def test_get_docs_for_question_gen(text, expected_length):
     assert len(docs) == expected_length
 
 
-@patch("main.logger")  # replace with the actual module
+@patch("documents.logger")  # replace with the actual module
 def test_get_docs_for_question_gen_logs(mock_logger):
     text = "This is a test text. " * 1000
     get_docs_for_question_gen(text)

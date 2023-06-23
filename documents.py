@@ -21,7 +21,7 @@ import os
 from agents_chain import get_chains
 
 # Get the same logger by using the same name
-logger = logging.getLogger("my_logger")
+logger = logging.getLogger("logger")
 
 
 def get_docs_for_question_gen(

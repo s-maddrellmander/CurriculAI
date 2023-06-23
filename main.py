@@ -19,10 +19,16 @@ from tqdm import tqdm
 import os
 
 from agents_chain import get_chains
-from documents import vector_embeddings, load_pdf_pages, get_chains, get_docs_for_QA, get_docs_for_question_gen
+from documents import (
+    vector_embeddings,
+    load_pdf_pages,
+    get_chains,
+    get_docs_for_QA,
+    get_docs_for_question_gen,
+)
 
 # Create a logger
-logger = logging.getLogger("my_logger")
+logger = logging.getLogger("logger")
 logger.setLevel(logging.INFO)
 
 # Create a console handler
