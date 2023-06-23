@@ -1,0 +1,10 @@
+faiss-cpu==1.7.4
+langchain==0.0.209
+openai==0.27.8
+pypdf==3.11.0
+PyPDF2==3.0.1
+tiktoken==0.4.0
+black==23.3.0
+pytest==7.3.2
+pytest-black==0.3.12
+pytest-cov==4.1.0

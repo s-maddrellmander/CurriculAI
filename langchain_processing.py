@@ -13,6 +13,7 @@ from langchain.vectorstores import FAISS
 from langchain.vectorstores.base import VectorStoreRetriever
 
 import logging
+import pickle
 
 from tqdm import tqdm
 
@@ -20,7 +21,7 @@ from tqdm import tqdm
 logger = logging.getLogger("logging_tryout2")
 logger.setLevel(logging.INFO)
 
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = "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"
 
 
 # """
@@ -33,10 +34,7 @@ OPENAI_API_KEY = "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"
 # """
 
 
-
-
 with get_openai_callback() as cb:
-
     file_path = "the-odyssey.pdf"
     loader_question_gen = PdfReader(file_path)
 
@@ -47,7 +45,9 @@ with get_openai_callback() as cb:
 
     # Split text for question generation
     logger.info("Splitting text for question gen")
-    text_splitter = TokenTextSplitter(chunk_size=10000, chunk_overlap=1000) # model_name="gpt-3.5-turbo-16k",
+    text_splitter = TokenTextSplitter(
+        chunk_size=10000, chunk_overlap=1000
+    )  # model_name="gpt-3.5-turbo-16k",
     texts_for_question_gen = text_splitter.split_text(text)
 
     # Save as documents for further processing
@@ -58,11 +58,12 @@ with get_openai_callback() as cb:
     loader_question_answer = PyPDFLoader(file_path=file_path)
     data_question_answer = loader_question_answer.load()
 
-    # Split data for question answering vector database 
+    # Split data for question answering vector database
     logger.info("Splitting text for answering database")
-    text_splitter = TokenTextSplitter(chunk_size=1000, chunk_overlap=200)  # model_name="gpt-3.5-turbo-16k",
+    text_splitter = TokenTextSplitter(
+        chunk_size=1000, chunk_overlap=200
+    )  # model_name="gpt-3.5-turbo-16k",
     docs_for_vector_database = text_splitter.split_documents(data_question_answer)
-
 
     prompt_template_questions = """
 
@@ -89,10 +90,11 @@ with get_openai_callback() as cb:
 
     """
 
-    PROMPT_QUESTIONS = PromptTemplate(template=prompt_template_questions, input_variables=["text"])
+    PROMPT_QUESTIONS = PromptTemplate(
+        template=prompt_template_questions, input_variables=["text"]
+    )
 
-
-    refine_template_questions = ("""
+    refine_template_questions = """
 
     Your goal is to prepare a student for their exam in Machine Learning and AI.
     You are an expert in the field of Machine Learning and AI.
@@ -112,38 +114,46 @@ with get_openai_callback() as cb:
     * World leading expert in AI
     * We need 25 questions
     """
-    )
 
     REFINE_PROMPT_QUESTIONS = PromptTemplate(
         input_variables=["existing_answer", "text"],
         template=refine_template_questions,
     )
 
-
     # Create the LLM model for the questions generation
-    llm_question_gen = ChatOpenAI(openai_api_key=OPENAI_API_KEY, temperature=0.4, model="gpt-3.5-turbo-16k")
+    llm_question_gen = ChatOpenAI(
+        openai_api_key=OPENAI_API_KEY, temperature=0.4, model="gpt-3.5-turbo-16k"
+    )
 
     # Ceate the question generation chain
-    question_chain = load_summarize_chain(llm=llm_question_gen, chain_type="refine",
-                                        verbose=True, question_prompt=PROMPT_QUESTIONS,
-                                        refine_prompt=REFINE_PROMPT_QUESTIONS)
+    question_chain = load_summarize_chain(
+        llm=llm_question_gen,
+        chain_type="refine",
+        verbose=True,
+        question_prompt=PROMPT_QUESTIONS,
+        refine_prompt=REFINE_PROMPT_QUESTIONS,
+    )
 
     # Run the question generation chain
     questions = question_chain.run(docs_for_question_gen)
 
     # Create the LLM model or the questions answering
-    llm_question_answer = ChatOpenAI(openai_api_key=OPENAI_API_KEY, temperature=0.4, model="gpt-3.5-turbo")
+    llm_question_answer = ChatOpenAI(
+        openai_api_key=OPENAI_API_KEY, temperature=0.4, model="gpt-3.5-turbo"
+    )
 
     # Create the vector database and reterval QA chain
     embeddings = OpenAIEmbeddings(openai_api_key=OPENAI_API_KEY)
     db = FAISS.from_documents(docs_for_vector_database, embeddings)
     # You can also save and load a FAISS index. This is useful so you don’t have to recreate it everytime you use it.
-    # db.save_local("faiss_index")
+    db.save_local("database/faiss_index")
+    with open("database/vectorstore.pkl", "wb") as f:
+        pickle.dump(db, f)
     # new_db = FAISS.load_local("faiss_index", embeddings)
 
-    qa = RetrievalQA.from_chain_type(llm=llm_question_answer, chain_type="stuff",
-                                    retriever=db.as_retriever())
-
+    qa = RetrievalQA.from_chain_type(
+        llm=llm_question_answer, chain_type="stuff", retriever=db.as_retriever()
+    )
 
     # SPlit the generated questions into a list of questions
     question_list = questions.split("\n")
@@ -155,6 +165,5 @@ with get_openai_callback() as cb:
         answer = qa.run(question)
         print("Answer: ", answer)
         print("------------------------------------------------------------\n\n")
-    
 
     print(cb)
