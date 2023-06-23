@@ -1,30 +1,18 @@
-from langchain.llms import OpenAI
-from langchain.callbacks import get_openai_callback
-from langchain.text_splitter import TokenTextSplitter
-from PyPDF2 import PdfReader
-from langchain.document_loaders import PyPDFLoader, TextLoader
-from langchain.chat_models import ChatOpenAI
-from langchain.prompts import PromptTemplate
-from langchain.schema import Document
-from langchain.chains.summarize import load_summarize_chain
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.chains import RetrievalQA
-from langchain.vectorstores import FAISS
-from langchain.vectorstores.base import VectorStoreRetriever
-
 import logging
-import pickle
-
-from tqdm import tqdm
 import os
+
+from langchain.callbacks import get_openai_callback
+from langchain.chains import RetrievalQA
+from langchain.text_splitter import TokenTextSplitter
+from tqdm import tqdm
 
 from agents_chain import get_chains
 from documents import (
-    vector_embeddings,
-    load_pdf_pages,
     get_chains,
     get_docs_for_QA,
     get_docs_for_question_gen,
+    load_pdf_pages,
+    vector_embeddings,
 )
 
 # Create a logger
@@ -53,9 +41,15 @@ def main():
         # Parse the pdf to text
         text = load_pdf_pages(file_path)
         docs_for_question_gen = get_docs_for_question_gen(text)
+        logger.info(
+            f"Summary: {len(docs_for_question_gen[0].page_content)} string length of first element"
+        )
 
         # Load Data from PDF for Question Answering
         data_question_answer = get_docs_for_QA(file_path=file_path)
+        logger.info(
+            f"Summary: {len(data_question_answer[0].page_content)} document length of first element"
+        )
 
         # Split data for question answering vector database
         logger.info("Splitting text for answering database")

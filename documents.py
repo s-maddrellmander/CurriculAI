@@ -1,22 +1,21 @@
-from langchain.llms import OpenAI
-from langchain.callbacks import get_openai_callback
-from langchain.text_splitter import TokenTextSplitter
-from PyPDF2 import PdfReader
-from langchain.document_loaders import PyPDFLoader, TextLoader
-from langchain.chat_models import ChatOpenAI
-from langchain.prompts import PromptTemplate
-from langchain.schema import Document
-from langchain.chains.summarize import load_summarize_chain
-from langchain.embeddings.openai import OpenAIEmbeddings
-from langchain.chains import RetrievalQA
-from langchain.vectorstores import FAISS
-from langchain.vectorstores.base import VectorStoreRetriever
-
 import logging
+import os
 import pickle
 
+from langchain.callbacks import get_openai_callback
+from langchain.chains import RetrievalQA
+from langchain.chains.summarize import load_summarize_chain
+from langchain.chat_models import ChatOpenAI
+from langchain.document_loaders import PyPDFLoader, TextLoader
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.llms import OpenAI
+from langchain.prompts import PromptTemplate
+from langchain.schema import Document
+from langchain.text_splitter import TokenTextSplitter
+from langchain.vectorstores import FAISS
+from langchain.vectorstores.base import VectorStoreRetriever
+from PyPDF2 import PdfReader
 from tqdm import tqdm
-import os
 
 from agents_chain import get_chains
 
@@ -59,6 +58,7 @@ def load_pdf_pages(file_path: str) -> str:
 def vector_embeddings(docs_for_vector_database):
     # Check if the vectorstore and faiss index are already created:
     if os.path.exists("database/vectorstore.pkl"):
+        logger.info("Loading the vectorstore database...")
         with open("database/vectorstore.pkl", "rb") as f:
             db = pickle.load(f)
     else:
