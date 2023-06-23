@@ -1,5 +1,7 @@
 # CurriculAI
 
+[![codecov](https://codecov.io/gh/s-maddrellmander/CurriculAI/branch/main/graph/badge.svg?token=XU26BNTC8I)](https://codecov.io/gh/s-maddrellmander/CurriculAI)
+
 CurriculAI is an AI-based educational tool that leverages the power of Langchain and OpenAI LLMs to transform user resources into accessible and engaging learning materials.
 
 ## Features
@@ -31,3 +33,10 @@ We have ambitious plans for CurriculAI, including enhancing the AI's understandi
 
 Join us in revolutionizing the way we create educational resources!
 
+# Coverage
+
+https://codecov.io/gh/s-maddrellmander/CurriculAI/branch/main/graphs/tree.svg?token=XU26BNTC8I
+
+https://codecov.io/gh/s-maddrellmander/CurriculAI/branch/main/graphs/sunburst.svg?token=XU26BNTC8I
+
+https://codecov.io/gh/s-maddrellmander/CurriculAI/branch/main/graphs/icicle.svg?token=XU26BNTC8I
