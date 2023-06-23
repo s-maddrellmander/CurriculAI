@@ -33,7 +33,12 @@ jobs:
     - name: Check code with Black
       run: |
         black --check .
+    - name: Adjust Python sys.path
+      run: echo "PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE" >> $GITHUB_ENV
+    - name: Print Python sys.path
+      run: python -c "import sys; print(sys.path)"
     - name: Test with pytest
+      working-directory: .
       run: |
         pytest --cov=. --cov-report term --cov-report html
     - name: Upload coverage to Codecov
