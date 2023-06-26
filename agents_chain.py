@@ -103,7 +103,9 @@ def get_textbook_chains(OPENAI_API_KEY: str, textbook_section: str):
 
     Think step by step.
 
-    Create questions that will prepare the student for their exam.
+    We are writing an advanced level textbook - treating the students with respect,
+    but having high expectations of their ability. 
+    This is a textbook targeting postgraduates, advanced level content. 
 
     Exam criteria:
 
@@ -113,6 +115,8 @@ def get_textbook_chains(OPENAI_API_KEY: str, textbook_section: str):
     
     The section of the textbook to be written is titled:
     {textbook_section}
+    This is the topic this section needs to be about. 
+    Focus on this specific topic in the answer. 
 
     Make sure not to lose any important information. Be as detailed as possible. 
     """
@@ -135,8 +139,6 @@ def get_textbook_chains(OPENAI_API_KEY: str, textbook_section: str):
     * Complete and deep understanding of the results 
     * Sophisticated understanding of machine learning
     * World leading expert in AI
-    
-    We only need one response.
     """
 
     PROMPT_QUESTIONS = PromptTemplate(
