@@ -66,7 +66,10 @@ def get_prompt_templates():
 
 
 def create_llm_model(openai_api_key: str, temperature: float, model: str):
-    return ChatOpenAI(openai_api_key=openai_api_key, temperature=temperature, model=model)
+    return ChatOpenAI(
+        openai_api_key=openai_api_key, temperature=temperature, model=model
+    )
+
 
 def get_question_answering_chains(OPENAI_API_KEY: str):
     PROMPT_QUESTIONS, REFINE_PROMPT_QUESTIONS = get_prompt_templates()

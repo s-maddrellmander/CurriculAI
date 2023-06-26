@@ -12,9 +12,9 @@ def test_get_prompt_templates():
 
     # Here you could add more asserts to check the content of the templates...
 
+
 @pytest.mark.parametrize(
-     "temperature, model",
-     [(0.4, "gpt-3.5-turbo"), (0.7, "gpt-3.5-turbo-16k")]
+    "temperature, model", [(0.4, "gpt-3.5-turbo"), (0.7, "gpt-3.5-turbo-16k")]
 )
 def test_create_llm_model(temperature, model):
     openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -22,7 +22,6 @@ def test_create_llm_model(temperature, model):
 
     assert llm.openai_api_key == openai_api_key
     assert llm.temperature == temperature
-    print(llm)
     assert llm.model_name == model
 
     # Here you could add more asserts depending on your specific needs...
