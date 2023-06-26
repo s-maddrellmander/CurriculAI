@@ -6,7 +6,8 @@ from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 
 
-def get_question_answering_chains(OPENAI_API_KEY: str):
+def get_prompt_templates():
+    # All the template creation code goes here
     prompt_template_initial = """
 
     Your goal is to prepare a student for their exam in Machine Learning and AI.
@@ -52,19 +53,28 @@ def get_question_answering_chains(OPENAI_API_KEY: str):
     """
 
     PROMPT_QUESTIONS = PromptTemplate(
-        template=prompt_template_initial, input_variables=["text"]
+        template=prompt_template_initial,
+        input_variables=["text"],
     )
+    # PROMPT_QUESTIONS.partial(textbook_section=textbook_section)
     REFINE_PROMPT_QUESTIONS = PromptTemplate(
         input_variables=["existing_answer", "text"],
         template=refine_template_prompt,
     )
 
-    # Create the LLM model for the questions generation
-    llm_question_gen = ChatOpenAI(
-        openai_api_key=OPENAI_API_KEY, temperature=0.4, model="gpt-3.5-turbo-16k"
-    )
+    return PROMPT_QUESTIONS, REFINE_PROMPT_QUESTIONS
 
-    # Ceate the question generation chain
+
+def create_llm_model(openai_api_key: str, temperature: float, model: str):
+    return ChatOpenAI(openai_api_key=openai_api_key, temperature=temperature, model=model)
+
+def get_question_answering_chains(OPENAI_API_KEY: str):
+    PROMPT_QUESTIONS, REFINE_PROMPT_QUESTIONS = get_prompt_templates()
+
+    # Create the LLM model for the questions generation
+    llm_question_gen = create_llm_model(OPENAI_API_KEY, 0.4, "gpt-3.5-turbo-16k")
+
+    # Create the question generation chain
     question_chain = load_summarize_chain(
         llm=llm_question_gen,
         chain_type="refine",
@@ -74,9 +84,7 @@ def get_question_answering_chains(OPENAI_API_KEY: str):
     )
 
     # Create the LLM model or the questions answering
-    llm_question_answer = ChatOpenAI(
-        openai_api_key=OPENAI_API_KEY, temperature=0.4, model="gpt-3.5-turbo"
-    )
+    llm_question_answer = create_llm_model(OPENAI_API_KEY, 0.4, "gpt-3.5-turbo")
 
     return llm_question_answer, question_chain
 
