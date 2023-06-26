@@ -194,7 +194,7 @@ def generate_questions(opts):
 
         # Get the LLM chains
         llm_question_answer, question_chain = get_question_answering_chains(
-            OPENAI_API_KEY=OPENAI_API_KEY
+            OPENAI_API_KEY=OPENAI_API_KEY, textbook_section=opts.subject
         )
         # llm_question_answer, question_chain = get_textbook_chains(
         #     OPENAI_API_KEY=OPENAI_API_KEY,

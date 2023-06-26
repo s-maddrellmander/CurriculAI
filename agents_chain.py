@@ -6,12 +6,18 @@ from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 
 
-def get_prompt_templates():
+def get_prompt_templates(textbook_section):
     # All the template creation code goes here
     prompt_template_initial = """
 
     Your goal is to prepare a student for their exam in Machine Learning and AI.
     You are an expert in the field of Machine Learning and AI.
+
+    The section of questions is to be on:
+    {textbook_section}
+    This is the topic this section needs to be about. 
+    Focus on this specific topic in the questions. 
+    
     You do this by asking questions about the text below:
 
     {text}
@@ -35,6 +41,11 @@ def get_prompt_templates():
 
     Your goal is to prepare a student for their exam in Machine Learning and AI.
     You are an expert in the field of Machine Learning and AI.
+    
+    The section of question is to be on:
+    {textbook_section}
+    This is the topic this section needs to be about. 
+    Focus on this specific topic in the questions. 
 
     We have recieved some questions to a certain extent: {existing_answer}.
     We have the option to refine the existing questions or add new ones.
@@ -55,11 +66,13 @@ def get_prompt_templates():
     PROMPT_QUESTIONS = PromptTemplate(
         template=prompt_template_initial,
         input_variables=["text"],
+        partial_variables={"textbook_section": textbook_section},
     )
     # PROMPT_QUESTIONS.partial(textbook_section=textbook_section)
     REFINE_PROMPT_QUESTIONS = PromptTemplate(
         input_variables=["existing_answer", "text"],
         template=refine_template_prompt,
+        partial_variables={"textbook_section": textbook_section},
     )
 
     return PROMPT_QUESTIONS, REFINE_PROMPT_QUESTIONS
@@ -71,8 +84,10 @@ def create_llm_model(openai_api_key: str, temperature: float, model: str):
     )
 
 
-def get_question_answering_chains(OPENAI_API_KEY: str):
-    PROMPT_QUESTIONS, REFINE_PROMPT_QUESTIONS = get_prompt_templates()
+def get_question_answering_chains(OPENAI_API_KEY: str, textbook_section: str):
+    PROMPT_QUESTIONS, REFINE_PROMPT_QUESTIONS = get_prompt_templates(
+        textbook_section=textbook_section
+    )
 
     # Create the LLM model for the questions generation
     llm_question_gen = create_llm_model(OPENAI_API_KEY, 0.4, "gpt-3.5-turbo-16k")
