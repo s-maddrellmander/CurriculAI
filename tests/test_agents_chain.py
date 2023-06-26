@@ -5,7 +5,7 @@ from langchain.prompts import PromptTemplate
 
 
 def test_get_prompt_templates():
-    PROMPT_QUESTIONS, REFINE_PROMPT_QUESTIONS = get_prompt_templates()
+    PROMPT_QUESTIONS, REFINE_PROMPT_QUESTIONS = get_prompt_templates(textbook_section="fake topic")
 
     assert isinstance(PROMPT_QUESTIONS, PromptTemplate)
     assert isinstance(REFINE_PROMPT_QUESTIONS, PromptTemplate)
