@@ -96,7 +96,12 @@ def get_textbook_chains(OPENAI_API_KEY: str, textbook_section: str):
     prompt_template_initial = """
 
     Your goal is to prepare a student for their exam in Machine Learning and AI.
-    You are an expert in the field of Machine Learning and AI.
+    You are an expert in the field of Machine Learning and AI and you are writing a textbook.
+    The section of the textbook to be written is titled:
+    {textbook_section}
+    This is the topic this section needs to be about. 
+    Focus on this specific topic in the answer. 
+    
     You do this by writing a detailed page of an advanced level textbook using the following text:
 
     {text}
@@ -113,33 +118,30 @@ def get_textbook_chains(OPENAI_API_KEY: str, textbook_section: str):
     * Sophisticated understanding of machine learning
     * World leading expert in AI
     
-    The section of the textbook to be written is titled:
-    {textbook_section}
-    This is the topic this section needs to be about. 
-    Focus on this specific topic in the answer. 
+    
 
     Make sure not to lose any important information. Be as detailed as possible. 
     """
 
-    refine_template_prompt = """
+    # refine_template_prompt = """
 
-    Your goal is to prepare a student for their exam in Machine Learning and AI.
-    You are an expert in the field of Machine Learning and AI.
+    # Your goal is to prepare a student for their exam in Machine Learning and AI.
+    # You are an expert in the field of Machine Learning and AI.
 
-    We have recieved an initial draft of the section for the textbook: {existing_answer}.
-    We have the option to refine the existing text or completely update.
-    (Only if necessary) with some more context below
-    "------------\n"
-    "{text}\n"
-    "------------\n"
+    # We have recieved an initial draft of the section for the textbook: {existing_answer}.
+    # We have the option to refine the existing text or completely update.
+    # (Only if necessary) with some more context below
+    # "------------\n"
+    # "{text}\n"
+    # "------------\n"
 
-    Given the new context, refine the original textbook section, remeber the section of the textbook to be written is titled:
-    {textbook_section}
+    # Given the new context, refine the original textbook section, remeber the section of the textbook to be written is titled:
+    # {textbook_section}
 
-    * Complete and deep understanding of the results 
-    * Sophisticated understanding of machine learning
-    * World leading expert in AI
-    """
+    # * Complete and deep understanding of the results
+    # * Sophisticated understanding of machine learning
+    # * World leading expert in AI
+    # """
 
     PROMPT_QUESTIONS = PromptTemplate(
         template=prompt_template_initial,
@@ -147,11 +149,11 @@ def get_textbook_chains(OPENAI_API_KEY: str, textbook_section: str):
         partial_variables={"textbook_section": textbook_section},
     )
     # PROMPT_QUESTIONS.partial(textbook_section=textbook_section)
-    REFINE_PROMPT_QUESTIONS = PromptTemplate(
-        input_variables=["existing_answer", "text"],
-        partial_variables={"textbook_section": textbook_section},
-        template=refine_template_prompt,
-    )
+    # REFINE_PROMPT_QUESTIONS = PromptTemplate(
+    #     input_variables=["existing_answer", "text"],
+    #     partial_variables={"textbook_section": textbook_section},
+    #     template=refine_template_prompt,
+    # )
 
     # REFINE_PROMPT_QUESTIONS.partial(textbook_section=textbook_section)
     # Create the LLM model for the questions generation
@@ -162,10 +164,10 @@ def get_textbook_chains(OPENAI_API_KEY: str, textbook_section: str):
     # Ceate the question generation chain
     question_chain = load_summarize_chain(
         llm=llm_question_gen,
-        chain_type="refine",
+        chain_type="stuff",
         verbose=True,
-        question_prompt=PROMPT_QUESTIONS,
-        refine_prompt=REFINE_PROMPT_QUESTIONS,
+        prompt=PROMPT_QUESTIONS,
+        # refine_prompt=REFINE_PROMPT_QUESTIONS,
     )
 
     # Create the LLM model or the questions answering
