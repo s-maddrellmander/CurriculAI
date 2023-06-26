@@ -2,6 +2,7 @@
 
 [![codecov](https://codecov.io/gh/s-maddrellmander/CurriculAI/branch/main/graph/badge.svg?token=XU26BNTC8I)](https://codecov.io/gh/s-maddrellmander/CurriculAI)
 [![test](https://github.com/s-maddrellmander/CurriculAI/actions/workflows/python-app.yml/badge.svg)](https://github.com/s-maddrellmander/CurriculAI/actions/workflows/python-app.yml)
+[![black lint](https://github.com/s-maddrellmander/CurriculAI/actions/workflows/lint.yml/badge.svg)](https://github.com/s-maddrellmander/CurriculAI/actions/workflows/lint.yml)
 
 
 CurriculAI is an AI-based educational tool that leverages the power of Langchain and OpenAI LLMs to transform user resources into accessible and engaging learning materials.
