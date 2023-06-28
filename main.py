@@ -10,8 +10,12 @@ from tqdm import tqdm
 
 from agents_chain import get_question_answering_chains, get_textbook_chains
 from chat import chat
-from documents import (get_docs_for_QA, get_docs_for_question_gen,
-                       load_pdf_pages, vector_embeddings)
+from documents import (
+    get_docs_for_QA,
+    get_docs_for_question_gen,
+    load_pdf_pages,
+    vector_embeddings,
+)
 
 # Create a logger
 logger = logging.getLogger("logger")

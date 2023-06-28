@@ -7,8 +7,12 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
 from PyPDF2 import PdfReader
 
-from documents import (get_docs_for_QA, get_docs_for_question_gen,
-                       load_pdf_pages, vector_embeddings)
+from documents import (
+    get_docs_for_QA,
+    get_docs_for_question_gen,
+    load_pdf_pages,
+    vector_embeddings,
+)
 
 
 @pytest.mark.parametrize(
