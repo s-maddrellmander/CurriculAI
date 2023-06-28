@@ -1,15 +1,29 @@
-name: Run isort
+# This workflow will check for isort
+
+name: isort
+
 on:
-  - push
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
 
 jobs:
   build:
+
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-      - uses: isort/isort-action@master
-        with:
-            requirementsFiles: "requirements.txt"
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    - name: Check code with isort
+      run: |
+        python -m pip install --upgrade pip
+        pip install isort
+        isort --profile black *.py tests/*
