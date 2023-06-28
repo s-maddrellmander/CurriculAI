@@ -1,21 +1,17 @@
+import argparse
 import logging
 import os
-import argparse
-
 
 from langchain.callbacks import get_openai_callback
 from langchain.chains import RetrievalQA
+from langchain.chains.summarize import load_summarize_chain
 from langchain.text_splitter import TokenTextSplitter
 from tqdm import tqdm
 
 from agents_chain import get_question_answering_chains, get_textbook_chains
-from documents import (
-    get_docs_for_QA,
-    get_docs_for_question_gen,
-    load_pdf_pages,
-    vector_embeddings,
-)
-from langchain.chains.summarize import load_summarize_chain
+from chat import chat
+from documents import (get_docs_for_QA, get_docs_for_question_gen,
+                       load_pdf_pages, vector_embeddings)
 
 # Create a logger
 logger = logging.getLogger("logger")
@@ -41,6 +37,8 @@ def main(opts):
         generate_questions(opts)
     if opts.prose_generation is True:
         generate_prose(opts)
+    if opts.chat is True:
+        chat()
 
 
 def generate_prose(opts):
@@ -245,6 +243,12 @@ def parse_arguments():
         help="Topic heading for generation",
         default="Introduction to ML.",
         type=str,
+    )
+    parser.add_argument(
+        "--chat",
+        help="Use the model in the chat mode",
+        default=False,
+        action="store_true",
     )
     return parser.parse_args()
 

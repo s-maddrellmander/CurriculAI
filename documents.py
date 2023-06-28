@@ -9,7 +9,6 @@ from langchain.text_splitter import TokenTextSplitter
 from langchain.vectorstores import FAISS
 from PyPDF2 import PdfReader
 
-
 # Get the same logger by using the same name
 logger = logging.getLogger("logger")
 

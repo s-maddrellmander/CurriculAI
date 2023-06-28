@@ -1,20 +1,14 @@
 import os
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock
-import os
-import pytest
-from documents import vector_embeddings
+from langchain.document_loaders import PyPDFLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
-from unittest.mock import patch
-
-from langchain.document_loaders import PyPDFLoader
 from PyPDF2 import PdfReader
 
-from documents import get_docs_for_QA, load_pdf_pages
-import pytest
-
-from documents import get_docs_for_question_gen, load_pdf_pages
+from documents import (get_docs_for_QA, get_docs_for_question_gen,
+                       load_pdf_pages, vector_embeddings)
 
 
 @pytest.mark.parametrize(
