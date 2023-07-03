@@ -233,7 +233,7 @@ def generate_questions(opts):
 
         print(cb)
     if opts.save_questions:
-        save_questions_to_file(questions, answers)
+        save_questions_to_file(questions, answers, "question_answers.csv")
 
 
 def parse_arguments():

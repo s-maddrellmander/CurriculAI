@@ -4,6 +4,7 @@ import pytest
 
 import chat
 import main
+from chat import remove_empty_strings
 
 
 @pytest.fixture
@@ -43,3 +44,9 @@ def test_main(mock_chat, mock_generate_prose, mock_generate_questions, mock_opts
     mock_opts.chat = True
     main.main(mock_opts)
     mock_chat.assert_called_once()
+
+
+def test_remove_empty_strings():
+    input_list = ["", "", "1. What are Graph Neural Networks?", ""]
+    expected_output = ["1. What are Graph Neural Networks?"]
+    assert remove_empty_strings(input_list) == expected_output
