@@ -1,8 +1,8 @@
 import argparse
 import logging
 import os
-import openai
 
+import openai
 from langchain.callbacks import get_openai_callback
 from langchain.chains import RetrievalQA
 from langchain.chains.summarize import load_summarize_chain
@@ -35,9 +35,9 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 # openai.api_key = os.environ["OPENAI_API_KEY"]
-openai.api_key = "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"
-OPENAI_API_KEY = openai.api_key
-logger.info(OPENAI_API_KEY)
+# TODO: Need to make this work properly from the env - this is not okay
+# OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+# logger.info(OPENAI_API_KEY)
 logger.info(openai.api_key)
 
 
@@ -47,7 +47,7 @@ def main(opts):
     if opts.prose_generation is True:
         generate_prose(opts)
     if opts.chat is True:
-        chat()
+        chat(opts)
 
 
 def generate_prose(opts):
@@ -81,7 +81,7 @@ def generate_prose(opts):
         #     OPENAI_API_KEY=OPENAI_API_KEY
         # )
         llm_question_answer, question_chain = get_textbook_chains(
-            OPENAI_API_KEY=OPENAI_API_KEY,
+            OPENAI_API_KEY=openai.api_key,
             textbook_section=opts.subject,
         )
 
@@ -177,7 +177,7 @@ def generate_questions(opts):
     with get_openai_callback() as cb:
         # Use the callback to ensure we monitor the usage
         file_path = "thebook.pdf"
-        logger.info(f"Openai API Key: {OPENAI_API_KEY}")
+        logger.info(f"Openai API Key openai.api_key: {openai.api_key}")
 
         # Parse the pdf to text
         text = load_pdf_pages(file_path)
@@ -202,7 +202,7 @@ def generate_questions(opts):
 
         # Get the LLM chains
         llm_question_answer, question_chain = get_question_answering_chains(
-            OPENAI_API_KEY=OPENAI_API_KEY, textbook_section=opts.subject
+            OPENAI_API_KEY=openai.api_key, textbook_section=opts.subject
         )
         # llm_question_answer, question_chain = get_textbook_chains(
         #     OPENAI_API_KEY=OPENAI_API_KEY,
@@ -210,6 +210,7 @@ def generate_questions(opts):
         # )
 
         # NOTE: This is not really appropriate for general prose generation.
+        # import pdb; pdb.set_trace()
         qa = RetrievalQA.from_chain_type(
             llm=llm_question_answer, chain_type="stuff", retriever=db.as_retriever()
         )
@@ -237,9 +238,7 @@ def generate_questions(opts):
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Description of your program.")
-    parser.add_argument(
-        "--key", help="Your OpenAI API key", default=None
-    )
+    parser.add_argument("--key", help="Your OpenAI API key", default=None)
     parser.add_argument(
         "--question_answer",
         help="Generate questions and answers",
