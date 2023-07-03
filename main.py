@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import openai
 
 from langchain.callbacks import get_openai_callback
 from langchain.chains import RetrievalQA
@@ -14,6 +15,7 @@ from documents import (
     get_docs_for_QA,
     get_docs_for_question_gen,
     load_pdf_pages,
+    save_questions_to_file,
     vector_embeddings,
 )
 
@@ -32,11 +34,14 @@ handler.setFormatter(formatter)
 # Add the handler to the logger
 logger.addHandler(handler)
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# openai.api_key = os.environ["OPENAI_API_KEY"]
+openai.api_key = "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"
+OPENAI_API_KEY = openai.api_key
+logger.info(OPENAI_API_KEY)
+logger.info(openai.api_key)
 
 
 def main(opts):
-    OPENAI_API_KEY = opts.key
     if opts.question_answer is True:
         generate_questions(opts)
     if opts.prose_generation is True:
@@ -172,6 +177,7 @@ def generate_questions(opts):
     with get_openai_callback() as cb:
         # Use the callback to ensure we monitor the usage
         file_path = "thebook.pdf"
+        logger.info(f"Openai API Key: {OPENAI_API_KEY}")
 
         # Parse the pdf to text
         text = load_pdf_pages(file_path)
@@ -216,19 +222,23 @@ def generate_questions(opts):
         question_list = questions.split("\n")
 
         # Answer each question
+        answers = []
         for question in tqdm(question_list):
             print("Question: ", question)
             answer = qa.run(question)
+            answers.append(answer)
             print("Answer: ", answer)
             print("------------------------------------------------------------\n\n")
 
         print(cb)
+    if opts.save_questions:
+        save_questions_to_file(questions, answers)
 
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Description of your program.")
     parser.add_argument(
-        "--key", help="Your OpenAI API key", default=os.getenv("OPENAI_API_KEY")
+        "--key", help="Your OpenAI API key", default=None
     )
     parser.add_argument(
         "--question_answer",
@@ -251,6 +261,12 @@ def parse_arguments():
     parser.add_argument(
         "--chat",
         help="Use the model in the chat mode",
+        default=False,
+        action="store_true",
+    )
+    parser.add_argument(
+        "--save_questions",
+        help="Save the questions to an anki compatible csv file",
         default=False,
         action="store_true",
     )

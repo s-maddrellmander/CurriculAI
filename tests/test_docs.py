@@ -11,6 +11,7 @@ from documents import (
     get_docs_for_QA,
     get_docs_for_question_gen,
     load_pdf_pages,
+    save_questions_to_file,
     vector_embeddings,
 )
 
@@ -99,3 +100,34 @@ def test_load_pdf_pages(monkeypatch):
 
     # Assert
     assert result == expected_result, f"Expected {expected_result}, but got {result}"
+
+
+# Test the save question format
+def test_save_questions_to_file():
+    questions = [
+        "What is your name?",
+        "What is your quest?",
+        "What is your favorite color?",
+    ]
+    answers = ["Sir Lancelot", "To seek the Holy Grail", "Blue"]
+
+    # Test file creation and content
+    filename = "test.csv"
+    save_questions_to_file(questions, answers, filename)
+    assert os.path.exists(filename)
+    with open(filename, "r") as f:
+        lines = f.read().splitlines()
+    expected_lines = [
+        "What is your name?;Sir Lancelot",
+        "What is your quest?;To seek the Holy Grail",
+        "What is your favorite color?;Blue",
+    ]
+    assert lines == expected_lines
+
+    # Test error when list lengths do not match
+    answers = ["Sir Lancelot", "To seek the Holy Grail"]
+    with pytest.raises(ValueError):
+        save_questions_to_file(questions, answers, filename)
+
+    # Clean up the test file
+    os.remove(filename)

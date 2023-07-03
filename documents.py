@@ -1,6 +1,8 @@
+import csv
 import logging
 import os
 import pickle
+from typing import List
 
 from langchain.document_loaders import PyPDFLoader, TextLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -60,3 +62,22 @@ def vector_embeddings(docs_for_vector_database):
         with open("database/vectorstore.pkl", "wb") as f:
             pickle.dump(db, f)
     return db
+
+
+def save_questions_to_file(questions: List[str], answers: List[str], filename: str):
+    """Save the set of question answer pairs to a semi-colon seperated file
+
+    Args:
+        questions (List[str]): _description_
+        answers (List[str]): _description_
+        filename (str): _description_
+
+    Raises:
+        ValueError: _description_
+    """
+    if len(questions) != len(answers):
+        raise ValueError("Length of questions and answers lists do not match.")
+    with open(filename, "w", newline="") as f:
+        writer = csv.writer(f, delimiter=";")
+        for question, answer in zip(questions, answers):
+            writer.writerow([question, answer])

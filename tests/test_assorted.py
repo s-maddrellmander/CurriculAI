@@ -9,6 +9,7 @@ def mock_opts():
         question_answer = False
         prose_generation = False
         chat = False
+        key = "FAKE API KEY"
     return Options()
 
 @patch('main.generate_questions')
