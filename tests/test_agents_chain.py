@@ -1,7 +1,9 @@
-import pytest
-from agents_chain import get_prompt_templates, create_llm_model
 import os
+
+import pytest
 from langchain.prompts import PromptTemplate
+
+from agents_chain import create_llm_model, get_prompt_templates
 
 
 def test_get_prompt_templates():

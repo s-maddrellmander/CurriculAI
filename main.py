@@ -1,21 +1,23 @@
+import argparse
 import logging
 import os
-import argparse
 
-
+import openai
 from langchain.callbacks import get_openai_callback
 from langchain.chains import RetrievalQA
+from langchain.chains.summarize import load_summarize_chain
 from langchain.text_splitter import TokenTextSplitter
 from tqdm import tqdm
 
 from agents_chain import get_question_answering_chains, get_textbook_chains
+from chat import chat
 from documents import (
     get_docs_for_QA,
     get_docs_for_question_gen,
     load_pdf_pages,
+    save_questions_to_file,
     vector_embeddings,
 )
-from langchain.chains.summarize import load_summarize_chain
 
 # Create a logger
 logger = logging.getLogger("logger")
@@ -32,15 +34,20 @@ handler.setFormatter(formatter)
 # Add the handler to the logger
 logger.addHandler(handler)
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# openai.api_key = os.environ["OPENAI_API_KEY"]
+# TODO: Need to make this work properly from the env - this is not okay
+# OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
+# logger.info(OPENAI_API_KEY)
+logger.info(openai.api_key)
 
 
 def main(opts):
-    OPENAI_API_KEY = opts.key
     if opts.question_answer is True:
         generate_questions(opts)
     if opts.prose_generation is True:
         generate_prose(opts)
+    if opts.chat is True:
+        chat(opts)
 
 
 def generate_prose(opts):
@@ -74,7 +81,7 @@ def generate_prose(opts):
         #     OPENAI_API_KEY=OPENAI_API_KEY
         # )
         llm_question_answer, question_chain = get_textbook_chains(
-            OPENAI_API_KEY=OPENAI_API_KEY,
+            OPENAI_API_KEY=openai.api_key,
             textbook_section=opts.subject,
         )
 
@@ -170,6 +177,7 @@ def generate_questions(opts):
     with get_openai_callback() as cb:
         # Use the callback to ensure we monitor the usage
         file_path = "thebook.pdf"
+        logger.info(f"Openai API Key openai.api_key: {openai.api_key}")
 
         # Parse the pdf to text
         text = load_pdf_pages(file_path)
@@ -194,7 +202,7 @@ def generate_questions(opts):
 
         # Get the LLM chains
         llm_question_answer, question_chain = get_question_answering_chains(
-            OPENAI_API_KEY=OPENAI_API_KEY, textbook_section=opts.subject
+            OPENAI_API_KEY=openai.api_key, textbook_section=opts.subject
         )
         # llm_question_answer, question_chain = get_textbook_chains(
         #     OPENAI_API_KEY=OPENAI_API_KEY,
@@ -202,6 +210,7 @@ def generate_questions(opts):
         # )
 
         # NOTE: This is not really appropriate for general prose generation.
+        # import pdb; pdb.set_trace()
         qa = RetrievalQA.from_chain_type(
             llm=llm_question_answer, chain_type="stuff", retriever=db.as_retriever()
         )
@@ -214,20 +223,22 @@ def generate_questions(opts):
         question_list = questions.split("\n")
 
         # Answer each question
+        answers = []
         for question in tqdm(question_list):
             print("Question: ", question)
             answer = qa.run(question)
+            answers.append(answer)
             print("Answer: ", answer)
             print("------------------------------------------------------------\n\n")
 
         print(cb)
+    if opts.save_questions:
+        save_questions_to_file(questions, answers, "question_answers.csv")
 
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Description of your program.")
-    parser.add_argument(
-        "--key", help="Your OpenAI API key", default=os.getenv("OPENAI_API_KEY")
-    )
+    parser.add_argument("--key", help="Your OpenAI API key", default=None)
     parser.add_argument(
         "--question_answer",
         help="Generate questions and answers",
@@ -245,6 +256,18 @@ def parse_arguments():
         help="Topic heading for generation",
         default="Introduction to ML.",
         type=str,
+    )
+    parser.add_argument(
+        "--chat",
+        help="Use the model in the chat mode",
+        default=False,
+        action="store_true",
+    )
+    parser.add_argument(
+        "--save_questions",
+        help="Save the questions to an anki compatible csv file",
+        default=False,
+        action="store_true",
     )
     return parser.parse_args()
 

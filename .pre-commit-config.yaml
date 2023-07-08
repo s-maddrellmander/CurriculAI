@@ -1,0 +1,26 @@
+repos:
+  - repo: local
+    hooks:
+      - id: prevent-api-key-commit
+        name: Prevent API Key Commit
+        entry: scripts/prevent_api_key_commit.py
+        language: python
+        files: '\.py$'
+
+      - id: isort
+        name: iSort
+        entry: isort --profile black
+        language: python
+        types: [python]
+
+      - id: black
+        name: Black
+        entry: black
+        language: python
+        types: [python]
+
+      - id: pytest
+        name: Pytest
+        entry: pytest tests --cov=. --cov-report term --cov-report html
+        language: python
+        types: [python]
