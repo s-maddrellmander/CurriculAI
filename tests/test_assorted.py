@@ -13,6 +13,7 @@ def mock_opts():
         question_answer = False
         prose_generation = False
         chat = False
+        anki = False
         key = "FAKE API KEY"
 
     return Options()
