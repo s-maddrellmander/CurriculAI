@@ -50,7 +50,7 @@ def main(opts):
     if opts.chat is True:
         chat(opts)
     if opts.anki is True:
-        generate_anki(opts.subject)
+        generate_anki(opts.subject, opts.notes)
 
 
 def generate_prose(opts):
@@ -277,6 +277,13 @@ def parse_arguments():
         help="Boolean to generate simple anki cards",
         default=False,
         action="store_true",
+    )
+
+    parser.add_argument(
+        "--notes",
+        help="Add more free text details to guide the questions",
+        default="",
+        action="store",
     )
     return parser.parse_args()
 

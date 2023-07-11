@@ -50,7 +50,7 @@ def save_csv(data: str, filename: str):
             writer.writerow([p.strip('"') for p in pair])  # Write data
 
 
-def generate_anki(subject: str) -> str:
+def generate_anki(subject: str, details: str = "") -> str:
     """Simple main function to generate anki cards on a subject
 
     Args:
@@ -71,13 +71,18 @@ def generate_anki(subject: str) -> str:
         Each card is a new line.
         
 
-        Generate 25 Anki cards in the above style on the following subject:
+        Generate 15 Anki cards in the above style on the following subject:
         {subject}
+        
+        with additional details:
+        {details}
 
         It is really important to use the style described above. 
         ANSWER:
         """
-        prompt = PromptTemplate(input_variables=["subject"], template=template)
+        prompt = PromptTemplate(
+            input_variables=["subject", "details"], template=template
+        )
         llm = ChatOpenAI(model_name="gpt-3.5-turbo-16k-0613")
 
         chain = LLMChain(
@@ -90,7 +95,7 @@ def generate_anki(subject: str) -> str:
         answers = []
         for query in tqdm(question_list):
             # query = "Provide a summary of what Graph Neural Networks are used for?"
-            result = chain({"subject": query})
+            result = chain({"subject": query, "details": details})
             print(query)
             print("Answer:")
             print(result)
