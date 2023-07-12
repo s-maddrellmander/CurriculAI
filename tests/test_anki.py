@@ -1,3 +1,4 @@
+import csv
 import logging
 import os
 from unittest.mock import MagicMock, patch
@@ -12,18 +13,18 @@ def test_anki_card_generator_creation():
 
 def test_save_csv():
     generator = AnkiCardGenerator()
-    test_data = "Question;Answer"
+    test_data = "Question;Answer\n"
     test_filename = "test_file"
-    generator.save_csv(test_data, test_filename)
+    generator._AnkiCardGenerator__save_csv(test_data, test_filename)
     with open(f"{test_filename}.csv", "r") as file:
-        content = file.read().strip()  # remove trailing newline
+        content = file.read()
     assert content == test_data
     os.remove(f"{test_filename}.csv")  # clean up the test file
 
 
 def test_logging():
     with patch("logging.Logger.info") as mock_info, patch.object(
-        AnkiCardGenerator, "_get_chain"
+        AnkiCardGenerator, "_AnkiCardGenerator__get_chain"
     ) as mock_get_chain:
         # Create a mock chain that returns a predictable result
         mock_chain = MagicMock()
@@ -31,7 +32,9 @@ def test_logging():
         mock_get_chain.return_value = mock_chain
 
         generator = AnkiCardGenerator()
-        result = generator._generate("test_subject", "details")
+        result = generator._AnkiCardGenerator__generate_content(
+            "test_subject", "details", generator.template
+        )
         assert mock_info.call_count == 3  # check if info was called 3 times
         assert result == "test_result"
 
@@ -42,3 +45,21 @@ def test_log_result():
         result = "Line 1\nLine 2\nLine 3"
         generator.log_result(result, verbose=True)
         assert mock_info.call_count == 3  # check if info was called 3 times
+
+
+def test_generate():
+    with patch.object(
+        AnkiCardGenerator, "_AnkiCardGenerator__generate_content"
+    ) as mock_generate_content, patch.object(
+        AnkiCardGenerator, "_AnkiCardGenerator__save_csv"
+    ) as mock_save_csv:
+        # Make __generate_content return a predictable result
+        mock_generate_content.return_value = "test_result"
+
+        generator = AnkiCardGenerator()
+        result = generator.generate("test_subject", "details")
+        # Check that __generate_content and __save_csv were called with the correct arguments
+        mock_generate_content.assert_called_with(
+            "test_subject", "details", generator.template
+        )
+        mock_save_csv.assert_called_with("test_result", "data/test_subject")

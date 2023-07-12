@@ -51,7 +51,10 @@ def main(opts):
         chat(opts)
     if opts.anki is True:
         generator = AnkiCardGenerator()
-        generator.generate_anki(opts.subject, opts.notes)
+        generator.generate(opts.subject, opts.notes, format="anki")
+    elif opts.prose is True:
+        generator = AnkiCardGenerator()
+        generator.generate(opts.subject, opts.notes, format="prose")
 
 
 def generate_prose(opts):
@@ -276,6 +279,12 @@ def parse_arguments():
     parser.add_argument(
         "--anki",
         help="Boolean to generate simple anki cards",
+        default=False,
+        action="store_true",
+    )
+    parser.add_argument(
+        "--prose",
+        help="Boolean to generate simple prose cards",
         default=False,
         action="store_true",
     )

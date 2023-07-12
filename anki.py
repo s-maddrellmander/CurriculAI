@@ -41,6 +41,7 @@ logger = logging.getLogger("logger")
 
 class AnkiCardGenerator:
     def __init__(self, model_name="gpt-3.5-turbo-16k-0613"):
+        """Initializes the AnkiCardGenerator with the provided model name."""
         self.model_name = model_name
         self.logger = logging.getLogger("logger")
         self.template = """
@@ -63,54 +64,55 @@ class AnkiCardGenerator:
         ANSWER:
         """
 
-    def _get_chain(self):
+        self.prose_template = """
+        You are an AI expert in AI and ML, and your task is to generate a comprehensive, informative, and detailed prose on the given subject. The output should be suitable for a postgraduate level student, covering key concepts as well as complex and advanced topics. Make sure to include examples, explanations, and bullet points for key facts where appropriate.
+
+        Output format:
+        The output should be a well-structured prose with clear paragraphs and subheadings. Bullet points can be used to list key facts, important points, or steps in a process. Each major topic or sub-topic should be a new paragraph or section.
+
+        Generate a detailed prose on the following subject:
+        {subject}
+
+        with additional details:
+        {details}
+
+        It is really important to use the style described above. 
+        ANSWER:
+        """
+
+    def __get_chain(self, template):
+        """Creates and returns a language model chain using the given template."""
         embeddings = OpenAIEmbeddings()
-
         prompt = PromptTemplate(
-            input_variables=["subject", "details"], template=self.template
+            input_variables=["subject", "details"], template=template
         )
-
         llm = ChatOpenAI(model_name=self.model_name)
+        return LLMChain(llm=llm, prompt=prompt, verbose=True)
 
-        chain = LLMChain(
-            llm=llm,
-            prompt=prompt,
-            verbose=True,
-        )
-
-        return chain
-
-    def _generate(self, subject, details):
-        chain = self._get_chain()
-        question_list = [subject]
-        answers = []
-        for query in tqdm(question_list):
-            result = chain({"subject": query, "details": details})
-            self.logger.info(query)
-            self.logger.info("Answer:")
-            self.logger.info(result)
-            # for line in result["text"].split("\n"):
-            #     self.logger.info(line)
+    def __generate_content(self, subject, details, template):
+        """Generates content for the given subject and details using the given template."""
+        chain = self.__get_chain(template)
+        result = chain({"subject": subject, "details": details})
+        self.logger.info(f"Subject: {subject}")
+        self.logger.info("Generated Content:")
+        self.logger.info(result)
         return result["text"]
 
+    def __save_csv(self, data, filename):
+        """Saves the generated data to a CSV file with the given filename."""
+        with open(f"{filename}.csv", "w", newline="") as f:
+            f.write(data)
+
     def log_result(self, result, verbose):
+        """Logs the generated result if verbose is True."""
         if verbose:
             for line in result.split("\n"):
                 self.logger.info(line)
 
-    def save_csv(self, data, filename):
-        lines = data.split("\n\n")
-        pairs = [line.split(";") for line in lines]
-
-        with open(f"{filename}.csv", "w", newline="") as f:
-            writer = csv.writer(f, delimiter=";", quoting=csv.QUOTE_MINIMAL)
-            for pair in pairs:
-                writer.writerow([p.strip('"') for p in pair])
-
-    def generate_anki(self, subject, details="", verbose=True):
-        with get_openai_callback() as cb:
-            result = self._generate(subject, details)
-            self.log_result(result, verbose)
-            self.save_csv(result, subject.replace(" ", "_"))
-            self.logger.info("Generated Anki cards for subject: " + subject)
-        self.logger.info(cb)
+    def generate(self, subject, details="", verbose=True, format="anki", path="data/"):
+        """Generates content for the given subject and details, and saves it to a CSV file."""
+        template = self.template if format == "anki" else self.prose_template
+        result = self.__generate_content(subject, details, template)
+        self.log_result(result, verbose)
+        self.__save_csv(result, os.path.join(path, subject.replace(" ", "_")))
+        self.logger.info(f"Generated content for subject: {subject}")
