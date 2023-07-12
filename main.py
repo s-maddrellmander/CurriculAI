@@ -10,6 +10,7 @@ from langchain.text_splitter import TokenTextSplitter
 from tqdm import tqdm
 
 from agents_chain import get_question_answering_chains, get_textbook_chains
+from anki import AnkiCardGenerator
 from chat import chat
 from documents import (
     get_docs_for_QA,
@@ -48,6 +49,9 @@ def main(opts):
         generate_prose(opts)
     if opts.chat is True:
         chat(opts)
+    if opts.anki is True:
+        generator = AnkiCardGenerator()
+        generator.generate_anki(opts.subject, opts.notes)
 
 
 def generate_prose(opts):
@@ -268,6 +272,19 @@ def parse_arguments():
         help="Save the questions to an anki compatible csv file",
         default=False,
         action="store_true",
+    )
+    parser.add_argument(
+        "--anki",
+        help="Boolean to generate simple anki cards",
+        default=False,
+        action="store_true",
+    )
+
+    parser.add_argument(
+        "--notes",
+        help="Add more free text details to guide the questions",
+        default="",
+        action="store",
     )
     return parser.parse_args()
 

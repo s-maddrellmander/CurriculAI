@@ -4,11 +4,11 @@ import os
 import pickle
 from typing import List
 
-from langchain.document_loaders import PyPDFLoader, TextLoader
+from langchain.document_loaders import PyPDFDirectoryLoader, PyPDFLoader, TextLoader
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.schema import Document
 from langchain.text_splitter import TokenTextSplitter
-from langchain.vectorstores import FAISS
+from langchain.vectorstores import FAISS, Chroma
 from PyPDF2 import PdfReader
 
 # Get the same logger by using the same name
@@ -49,19 +49,42 @@ def load_pdf_pages(file_path: str) -> str:
 
 def vector_embeddings(docs_for_vector_database):
     # Check if the vectorstore and faiss index are already created:
-    if os.path.exists("database/vectorstore.pkl"):
-        logger.info("Loading the vectorstore database...")
-        with open("database/vectorstore.pkl", "rb") as f:
-            db = pickle.load(f)
+    # if os.path.exists("database/vectorstore.pkl"):
+    #     logger.info("Loading the vectorstore database...")
+    #     with open("database/vectorstore.pkl", "rb") as f:
+    #         db = pickle.load(f)
+    # else:
+    #     # Create the vector database and reterval QA chain
+    #     embeddings = OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY"))
+    #     db = FAISS.from_documents(docs_for_vector_database, embeddings)
+    #     # Save the FAISS index and vectorstore
+    #     db.save_local("database/faiss_index")
+    #     with open("database/vectorstore.pkl", "wb") as f:
+    #         pickle.dump(db, f)
+    embeddings = OpenAIEmbeddings()
+
+    # Check for existing vectored database and regenerate if necessary
+    chroma_dir = "chroma_db/"
+    # TODO: Make this a proper argument
+    regenerate = True
+    if regenerate or not os.path.exists(chroma_dir):
+        pdf_folder_path = os.path.expanduser("~/Zotero/storage/Z32D8NXD/")
+        loader = PyPDFDirectoryLoader(
+            pdf_folder_path, glob="*.pdf", recursive=True, silent_errors=True
+        )
+        docs = loader.load()
+        print(len(docs))
+
+        vectordb = Chroma.from_documents(
+            docs,
+            embedding=embeddings,
+            persist_directory=chroma_dir,
+            disallowed_special=(),
+        )
+        vectordb.persist()
     else:
-        # Create the vector database and reterval QA chain
-        embeddings = OpenAIEmbeddings(openai_api_key=os.getenv("OPENAI_API_KEY"))
-        db = FAISS.from_documents(docs_for_vector_database, embeddings)
-        # Save the FAISS index and vectorstore
-        db.save_local("database/faiss_index")
-        with open("database/vectorstore.pkl", "wb") as f:
-            pickle.dump(db, f)
-    return db
+        vectordb = Chroma(persist_directory=chroma_dir, embedding_function=embeddings)
+    return vectordb
 
 
 def save_questions_to_file(questions: List[str], answers: List[str], filename: str):
