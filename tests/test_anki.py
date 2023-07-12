@@ -1,6 +1,6 @@
 import logging
 import os
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from anki import AnkiCardGenerator
 
@@ -22,11 +22,18 @@ def test_save_csv():
 
 
 def test_logging():
-    with patch("logging.Logger.info") as mock_info:
+    with patch("logging.Logger.info") as mock_info, patch.object(
+        AnkiCardGenerator, "_get_chain"
+    ) as mock_get_chain:
+        # Create a mock chain that returns a predictable result
+        mock_chain = MagicMock()
+        mock_chain.return_value = {"text": "test_result"}
+        mock_get_chain.return_value = mock_chain
+
         generator = AnkiCardGenerator()
         result = generator._generate("test_subject", "details")
-        assert mock_info.call_count == 3  # check if info was called 4 times
-        # TODO: Add test for the output format here as well.
+        assert mock_info.call_count == 3  # check if info was called 3 times
+        assert result == "test_result"
 
 
 def test_log_result():
