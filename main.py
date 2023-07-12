@@ -10,7 +10,7 @@ from langchain.text_splitter import TokenTextSplitter
 from tqdm import tqdm
 
 from agents_chain import get_question_answering_chains, get_textbook_chains
-from anki import generate_anki
+from anki import AnkiCardGenerator
 from chat import chat
 from documents import (
     get_docs_for_QA,
@@ -50,7 +50,8 @@ def main(opts):
     if opts.chat is True:
         chat(opts)
     if opts.anki is True:
-        generate_anki(opts.subject, opts.notes)
+        generator = AnkiCardGenerator()
+        generator.generate_anki(opts.subject, opts.notes)
 
 
 def generate_prose(opts):
