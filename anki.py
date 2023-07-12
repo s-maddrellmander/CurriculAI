@@ -33,10 +33,7 @@ from documents import save_questions_to_file
 
 # os.environ["OPENAI_API_KEY"] = "YOUR API KEY"
 
-
 logger = logging.getLogger("logger")
-
-# Refactoring the code into a class
 
 
 class AnkiCardGenerator:
@@ -53,14 +50,18 @@ class AnkiCardGenerator:
         Output format:
         The question and answer should be on the same line, separated by a ; character
         Each card is a new line.
+        The questions should make it clear the topic they are asking about.
 
         Generate 15 Anki cards in the above style on the following subject:
         {subject}
 
         with additional details:
         {details}
+        
+        Some context:
+        {extra}
 
-        It is really important to use the style described above. 
+        It is really important to use the style described above.
         ANSWER:
         """
 
@@ -74,7 +75,7 @@ class AnkiCardGenerator:
         {subject}
 
         with additional details:
-        {details}
+        {details}{extra}
 
         It is really important to use the style described above. 
         ANSWER:
@@ -84,15 +85,15 @@ class AnkiCardGenerator:
         """Creates and returns a language model chain using the given template."""
         embeddings = OpenAIEmbeddings()
         prompt = PromptTemplate(
-            input_variables=["subject", "details"], template=template
+            input_variables=["subject", "details", "extra"], template=template
         )
         llm = ChatOpenAI(model_name=self.model_name)
         return LLMChain(llm=llm, prompt=prompt, verbose=True)
 
-    def __generate_content(self, subject, details, template):
+    def __generate_content(self, subject, details, template, extra):
         """Generates content for the given subject and details using the given template."""
         chain = self.__get_chain(template)
-        result = chain({"subject": subject, "details": details})
+        result = chain({"subject": subject, "details": details, "extra": extra})
         self.logger.info(f"Subject: {subject}")
         self.logger.info("Generated Content:")
         self.logger.info(result)
@@ -103,16 +104,27 @@ class AnkiCardGenerator:
         with open(f"{filename}.csv", "w", newline="") as f:
             f.write(data)
 
+    def __save_txt(self, data, filename):
+        """Saves the generated data to a text file with the given filename."""
+        with open(f"{filename}.txt", "w") as f:
+            f.write(data)
+
     def log_result(self, result, verbose):
         """Logs the generated result if verbose is True."""
         if verbose:
             for line in result.split("\n"):
                 self.logger.info(line)
 
-    def generate(self, subject, details="", verbose=True, format="anki", path="data/"):
+    def generate(
+        self, subject, details="", verbose=True, format="anki", path="data/", extra=""
+    ):
         """Generates content for the given subject and details, and saves it to a CSV file."""
         template = self.template if format == "anki" else self.prose_template
-        result = self.__generate_content(subject, details, template)
+        result = self.__generate_content(subject, details, template, extra)
         self.log_result(result, verbose)
-        self.__save_csv(result, os.path.join(path, subject.replace(" ", "_")))
+        if format == "anki":
+            self.__save_csv(result, os.path.join(path, subject.replace(" ", "_")))
+        else:  # format is "prose"
+            self.__save_txt(result, os.path.join(path, subject.replace(" ", "_")))
         self.logger.info(f"Generated content for subject: {subject}")
+        return result

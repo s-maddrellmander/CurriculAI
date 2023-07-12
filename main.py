@@ -43,18 +43,22 @@ logger.info(openai.api_key)
 
 
 def main(opts):
-    if opts.question_answer is True:
-        generate_questions(opts)
-    if opts.prose_generation is True:
-        generate_prose(opts)
-    if opts.chat is True:
-        chat(opts)
-    if opts.anki is True:
-        generator = AnkiCardGenerator()
-        generator.generate(opts.subject, opts.notes, format="anki")
-    elif opts.prose is True:
-        generator = AnkiCardGenerator()
-        generator.generate(opts.subject, opts.notes, format="prose")
+    with get_openai_callback() as cb:
+        if opts.question_answer is True:
+            generate_questions(opts)
+        if opts.prose_generation is True:
+            generate_prose(opts)
+        if opts.chat is True:
+            chat(opts)
+        if opts.prose is True:
+            generator = AnkiCardGenerator()
+            result = generator.generate(opts.subject, opts.notes, format="prose")
+        if opts.anki is True:
+            generator = AnkiCardGenerator()
+            result = generator.generate(
+                opts.subject, opts.notes, format="anki", extra=result
+            )
+    logger.info(cb)
 
 
 def generate_prose(opts):

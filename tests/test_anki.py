@@ -22,6 +22,17 @@ def test_save_csv():
     os.remove(f"{test_filename}.csv")  # clean up the test file
 
 
+def test_save_txt():
+    generator = AnkiCardGenerator()
+    test_data = "This is a test.\n"
+    test_filename = "test_file"
+    generator._AnkiCardGenerator__save_txt(test_data, test_filename)
+    with open(f"{test_filename}.txt", "r") as file:
+        content = file.read()
+    assert content == test_data
+    os.remove(f"{test_filename}.txt")  # clean up the test file
+
+
 def test_logging():
     with patch("logging.Logger.info") as mock_info, patch.object(
         AnkiCardGenerator, "_AnkiCardGenerator__get_chain"
@@ -33,7 +44,7 @@ def test_logging():
 
         generator = AnkiCardGenerator()
         result = generator._AnkiCardGenerator__generate_content(
-            "test_subject", "details", generator.template
+            "test_subject", "details", "extra", generator.template
         )
         assert mock_info.call_count == 3  # check if info was called 3 times
         assert result == "test_result"
@@ -57,9 +68,13 @@ def test_generate():
         mock_generate_content.return_value = "test_result"
 
         generator = AnkiCardGenerator()
-        result = generator.generate("test_subject", "details")
+        result = generator.generate(
+            "test_subject", "details", format="anki", extra="extra"
+        )
         # Check that __generate_content and __save_csv were called with the correct arguments
         mock_generate_content.assert_called_with(
-            "test_subject", "details", generator.template
+            "test_subject", "details", generator.template, "extra"
         )
         mock_save_csv.assert_called_with("test_result", "data/test_subject")
+
+    assert result == "test_result"
