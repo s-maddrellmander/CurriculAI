@@ -56,8 +56,12 @@ def main(opts):
         if opts.anki is True:
             generator = AnkiCardGenerator()
             result = generator.generate(
-                opts.subject, opts.notes, format="anki", extra=result
+                opts.subject, opts.notes, format="anki", extra="", verbose=False
             )
+        if opts.mcq is True:
+            generator = AnkiCardGenerator(model_name="gpt-3.5-turbo")
+            mcq = generator.generate_MCQs("K-means clustering?")
+            print(mcq)
     logger.info(cb)
 
 
@@ -298,6 +302,12 @@ def parse_arguments():
         help="Add more free text details to guide the questions",
         default="",
         action="store",
+    )
+    parser.add_argument(
+        "--mcq",
+        help="Generate MCQ questions",
+        default=False,
+        action="store_true",
     )
     return parser.parse_args()
 

@@ -16,6 +16,7 @@ def mock_opts():
         anki = False
         prose = False
         notes = ""
+        mcq = False
         key = "FAKE API KEY"
 
     return Options()

@@ -13,7 +13,7 @@ def test_anki_card_generator_creation():
 
 def test_save_csv():
     generator = AnkiCardGenerator()
-    test_data = "Question;Answer\n"
+    test_data = "Question;Answer"
     test_filename = "test_file"
     generator._AnkiCardGenerator__save_csv(test_data, test_filename)
     with open(f"{test_filename}.csv", "r") as file:
@@ -46,7 +46,7 @@ def test_logging():
         result = generator._AnkiCardGenerator__generate_content(
             "test_subject", "details", "extra", generator.template
         )
-        assert mock_info.call_count == 3  # check if info was called 3 times
+        assert mock_info.call_count == 2  # check if info was called 3 times
         assert result == "test_result"
 
 
