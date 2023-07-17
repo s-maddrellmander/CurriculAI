@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import random
+import re
 import textwrap
 from getpass import getpass
 
@@ -43,6 +44,8 @@ class AnkiCardGenerator:
         """Initializes the AnkiCardGenerator with the provided model name."""
         self.model_name = model_name
         self.logger = logging.getLogger("logger")
+        self.questions_asked = set()
+
         self.template = """
         You are an expert in AI and ML - and you are a helpful AI making insightful 
         and considered Anki style flashcards for a student. The content should be postgraduate level.
@@ -137,7 +140,15 @@ class AnkiCardGenerator:
         self.logger.info(f"Generated content for subject: {subject}")
         return result
 
-    def generate_question(self, topic):
+    def generate_question(self, topic, previous_questions=None, aspect=None):
+        instruction = f"Generate a unique question about {topic}"
+        if aspect:
+            instruction += f", focusing on the aspect of {aspect}"
+        if previous_questions:
+            instruction += ". Avoid duplicating the following questions: " + ", ".join(
+                previous_questions
+            )
+
         response = openai.ChatCompletion.create(
             model=self.model_name,
             messages=[
@@ -145,10 +156,15 @@ class AnkiCardGenerator:
                     "role": "system",
                     "content": "You are an intelligent assistant that's been trained on a diverse range of internet text. You're skilled in generating advanced, postgraduate-level questions.",
                 },
-                {"role": "user", "content": f"Generate a question about {topic}."},
+                {"role": "user", "content": instruction},
             ],
         )
-        return response.choices[0]["message"]["content"].strip()
+        new_question = response.choices[0]["message"]["content"].strip()
+        if new_question not in self.questions_asked:
+            self.questions_asked.add(new_question)
+            return new_question
+        else:
+            return self.generate_question(topic, previous_questions, aspect)
 
     def generate_answers(self, question_prompt, num_options=5):
         response = openai.ChatCompletion.create(
@@ -164,12 +180,24 @@ class AnkiCardGenerator:
                 },
             ],
         )
-        return response.choices[0]["message"]["content"].strip().split("\n")
+        raw_answers = response.choices[0]["message"]["content"].strip()
+        processed_answers = re.sub(
+            r"\b\d+\b", "", raw_answers
+        )  # Remove leading numbers
+        processed_answers = re.sub(
+            r"^[a-zA-Z]\.", "", processed_answers, flags=re.M
+        )  # Remove leading letters followed by a dot
+        processed_answers = processed_answers.strip().split(
+            "\n"
+        )  # Split answers by new line
+        return [
+            answer.strip() for answer in processed_answers if answer.strip()
+        ]  # Remove empty answers and extra spaces
 
     def generate_MCQs(self, topic, num_questions=5, num_options=5):
         mcqs = []
         for _ in range(num_questions):
-            question_prompt = self.generate_question(topic)
+            question_prompt = self.generate_question(topic, self.questions_asked)
             answers = self.generate_answers(question_prompt, num_options)
             correct_answer = answers[0]
             random.shuffle(answers)
@@ -181,4 +209,4 @@ class AnkiCardGenerator:
                     "correct_index": correct_index,
                 }
             )
-        return json.dumps(mcqs)
+        return mcqs, json.dumps(mcqs)

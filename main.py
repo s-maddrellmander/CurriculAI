@@ -60,8 +60,9 @@ def main(opts):
             )
         if opts.mcq is True:
             generator = AnkiCardGenerator(model_name="gpt-3.5-turbo")
-            mcq = generator.generate_MCQs("K-means clustering?")
-            print(mcq)
+            mcq, json_mcq = generator.generate_MCQs("K-means clustering?")
+            for mc in mcq:
+                print(mc)
     logger.info(cb)
 
 
