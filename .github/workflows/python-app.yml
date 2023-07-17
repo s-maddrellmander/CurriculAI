@@ -1,13 +1,10 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
 name: Python application
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
   schedule:
     - cron:  '0 0 * * *'
 
@@ -19,7 +16,6 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -36,6 +32,14 @@ jobs:
       run: echo "PYTHONPATH=$PYTHONPATH:$GITHUB_WORKSPACE" >> $GITHUB_ENV
     - name: Print Python sys.path
       run: python -c "import sys; print(sys.path)"
+    - name: Check code with isort
+      run: |
+        pip install isort
+        isort --profile black *.py tests/*
+    - name: Check code with Black
+      run: |
+        pip install black==23.3.0
+        black --check .
     - name: Test with pytest
       working-directory: .
       run: |
@@ -44,3 +48,4 @@ jobs:
       uses: codecov/codecov-action@v3
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
+    
