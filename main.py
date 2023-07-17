@@ -43,15 +43,27 @@ logger.info(openai.api_key)
 
 
 def main(opts):
-    if opts.question_answer is True:
-        generate_questions(opts)
-    if opts.prose_generation is True:
-        generate_prose(opts)
-    if opts.chat is True:
-        chat(opts)
-    if opts.anki is True:
-        generator = AnkiCardGenerator()
-        generator.generate_anki(opts.subject, opts.notes)
+    with get_openai_callback() as cb:
+        if opts.question_answer is True:
+            generate_questions(opts)
+        if opts.prose_generation is True:
+            generate_prose(opts)
+        if opts.chat is True:
+            chat(opts)
+        if opts.prose is True:
+            generator = AnkiCardGenerator()
+            result = generator.generate(opts.subject, opts.notes, format="prose")
+        if opts.anki is True:
+            generator = AnkiCardGenerator()
+            result = generator.generate(
+                opts.subject, opts.notes, format="anki", extra="", verbose=False
+            )
+        if opts.mcq is True:
+            generator = AnkiCardGenerator(model_name="gpt-3.5-turbo")
+            mcq, json_mcq = generator.generate_MCQs("K-means clustering?")
+            for mc in mcq:
+                print(mc)
+    logger.info(cb)
 
 
 def generate_prose(opts):
@@ -279,12 +291,24 @@ def parse_arguments():
         default=False,
         action="store_true",
     )
+    parser.add_argument(
+        "--prose",
+        help="Boolean to generate simple prose cards",
+        default=False,
+        action="store_true",
+    )
 
     parser.add_argument(
         "--notes",
         help="Add more free text details to guide the questions",
         default="",
         action="store",
+    )
+    parser.add_argument(
+        "--mcq",
+        help="Generate MCQ questions",
+        default=False,
+        action="store_true",
     )
     return parser.parse_args()
 
