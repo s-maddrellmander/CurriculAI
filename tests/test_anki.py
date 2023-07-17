@@ -120,3 +120,23 @@ def test_generate_MCQs():
         # assert (
         #     len(mcq["answers"]) == 5
         # )  # check that the correct number of answers are generated
+
+
+def test_save_to_file():
+    gen = AnkiCardGenerator(
+        "dummy"
+    )  # Instantiate your class with the appropriate model name
+    data = {"key": "value"}  # Some sample data
+    filename = "test.json"
+    gen.save_to_file(data, "", filename)
+
+    # Check if file exists
+    assert os.path.isfile(filename)
+
+    # Load the file and check its contents
+    with open(filename, "r") as infile:
+        loaded_data = json.load(infile)
+    assert loaded_data == data
+
+    # Clean up the file after testing
+    os.remove(filename)

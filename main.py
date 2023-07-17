@@ -43,6 +43,7 @@ logger.info(openai.api_key)
 
 
 def main(opts):
+    path = "data"
     with get_openai_callback() as cb:
         if opts.question_answer is True:
             generate_questions(opts)
@@ -60,9 +61,13 @@ def main(opts):
             )
         if opts.mcq is True:
             generator = AnkiCardGenerator(model_name="gpt-3.5-turbo")
-            mcq, json_mcq = generator.generate_MCQs("K-means clustering?")
+            mcq, json_mcq = generator.generate_MCQs(opts.subject, opts.notes)
             for mc in mcq:
                 print(mc)
+            generator.save_to_file(
+                mcq, path, f"{opts.subject.replace(' ', '_')}_json.txt"
+            )
+
     logger.info(cb)
 
 
