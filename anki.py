@@ -137,57 +137,48 @@ class AnkiCardGenerator:
         self.logger.info(f"Generated content for subject: {subject}")
         return result
 
+    def generate_question(self, topic):
+        response = openai.ChatCompletion.create(
+            model=self.model_name,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an intelligent assistant that's been trained on a diverse range of internet text. You're skilled in generating advanced, postgraduate-level questions.",
+                },
+                {"role": "user", "content": f"Generate a question about {topic}."},
+            ],
+        )
+        return response.choices[0]["message"]["content"].strip()
+
+    def generate_answers(self, question_prompt, num_options=5):
+        response = openai.ChatCompletion.create(
+            model=self.model_name,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an intelligent assistant that's been trained on a diverse range of internet text. You're skilled in generating advanced, postgraduate-level multiple choice questions.",
+                },
+                {
+                    "role": "user",
+                    "content": f"For the question: {question_prompt}, generate one correct answer and {num_options - 1} incorrect but plausible answers. The answers should be closely related to the question topic, but clearly incorrect upon close examination.",
+                },
+            ],
+        )
+        return response.choices[0]["message"]["content"].strip().split("\n")
+
     def generate_MCQs(self, topic, num_questions=5, num_options=5):
-        """Generates multiple choice questions and answers based on a given topic."""
-        # List to store all MCQs
         mcqs = []
-
         for _ in range(num_questions):
-            # Generate a question based on the topic
-            question_response = openai.ChatCompletion.create(
-                model=self.model_name,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are an intelligent assistant that's been trained on a diverse range of internet text. You're skilled in generating advanced, postgraduate-level questions.",
-                    },
-                    {"role": "user", "content": f"Generate a question about {topic}."},
-                ],
-            )
-            question_prompt = question_response.choices[0]["message"]["content"].strip()
-
-            # Generate a factual question-answer pair and four incorrect answers
-            answer_response = openai.ChatCompletion.create(
-                model=self.model_name,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are an intelligent assistant that's been trained on a diverse range of internet text. You're skilled in generating advanced, postgraduate-level multiple choice questions.",
-                    },
-                    {
-                        "role": "user",
-                        "content": f"For the question: {question_prompt}, generate one correct answer and {num_options - 1} incorrect but plausible answers. The answers should be closely related to the question topic, but clearly incorrect upon close examination. Place each answer on a new line, do not number questions.",
-                    },
-                ],
-            )
-            # Split the generated text into separate answers
-            answers = (
-                answer_response.choices[0]["message"]["content"].strip().split("\n")
-            )
-            # The first answer is the correct one
+            question_prompt = self.generate_question(topic)
+            answers = self.generate_answers(question_prompt, num_options)
             correct_answer = answers[0]
-            # Shuffle the answers
             random.shuffle(answers)
-            # Get the index of the correct answer
             correct_index = answers.index(correct_answer)
-            # Add the MCQ to the list
-            mcq = {
-                "question": question_prompt,
-                "answers": answers,
-                "correct_index": correct_index,
-            }
-            mcqs.append(mcq)
-            logger.info(json.dumps(mcq, indent=4))
-
-        # Return the list of MCQs as a JSON object
+            mcqs.append(
+                {
+                    "question": question_prompt,
+                    "answers": answers,
+                    "correct_index": correct_index,
+                }
+            )
         return json.dumps(mcqs)

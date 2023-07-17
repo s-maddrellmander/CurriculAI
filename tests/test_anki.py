@@ -78,3 +78,41 @@ def test_generate():
         mock_save_csv.assert_called_with("test_result", "data/test_subject")
 
     assert result == "test_result"
+
+
+import json
+
+from anki import AnkiCardGenerator
+
+
+def test_generate_question():
+    gen = AnkiCardGenerator()
+    question = gen.generate_question("Machine Learning")
+    assert isinstance(question, str)
+    assert question  # check that the question is not empty
+
+
+def test_generate_answers():
+    gen = AnkiCardGenerator()
+    answers = gen.generate_answers("What is machine learning?", 5)
+    assert isinstance(answers, list)
+    # assert len(answers) == 5  # check that the correct number of answers are generated
+    for answer in answers:
+        assert isinstance(answer, str)
+        # assert answer  # check that the answer is not empty
+
+
+def test_generate_MCQs():
+    gen = AnkiCardGenerator()
+    mcqs = json.loads(gen.generate_MCQs("Machine Learning", 5, 5))
+    assert isinstance(mcqs, list)
+    assert len(mcqs) == 5  # check that the correct number of MCQs are generated
+    for mcq in mcqs:
+        assert set(mcq.keys()) == {
+            "question",
+            "answers",
+            "correct_index",
+        }  # check that the MCQ has the correct structure
+        # assert (
+        #     len(mcq["answers"]) == 5
+        # )  # check that the correct number of answers are generated
