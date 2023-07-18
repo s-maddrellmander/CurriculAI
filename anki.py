@@ -216,6 +216,34 @@ class AnkiCardGenerator:
             )
         return mcqs, json.dumps(mcqs)
 
+    def combine(self, *inputs):
+        # Assume inputs are lists of dictionaries. We join the contents of each input.
+        combined_input = " ".join(
+            [
+                json.dumps(input_dict)
+                for input_list in inputs
+                for input_dict in input_list
+            ]
+        )
+
+        response = openai.ChatCompletion.create(
+            model=self.model_name,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an intelligent assistant that's been trained on a diverse range of internet text. You're skilled in generating advanced, postgraduate-level content.",
+                },
+                {
+                    "role": "user",
+                    "content": f"Look at these possible variations of the content, take the best from each of these and produce the best content possible: {combined_input}",
+                },
+            ],
+        )
+
+        combined_content = response.choices[0]["message"]["content"].strip()
+
+        return combined_content
+
     def save_to_file(self, data, path, filename):
         with open(os.path.join(path, filename), "w") as outfile:
             json.dump(data, outfile)

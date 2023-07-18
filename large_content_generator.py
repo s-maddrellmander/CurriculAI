@@ -27,7 +27,9 @@ class LargeContentGenerator:
         start_time = time.time()
 
         # Generate and save 5 versions of each type of content
-        for i in tqdm(range(1, 6), desc="Temperature Iteration:"):
+        for i in tqdm(range(1, 4), desc="Temperature Iteration:"):
+            # Reset the history
+            self.generator.questions_asked = set()
             # Prose
             prose = self.generator.generate(subject, self.notes, format="prose")
             self.save_to_file(prose, subject, f"prose_v{i}")
@@ -39,7 +41,6 @@ class LargeContentGenerator:
             )
             self.save_to_file(anki, subject, f"anki_v{i}")
             self.summary_data[subject]["anki"] += 1
-
             # MCQs
             mcq, _ = self.generator.generate_MCQs(subject, self.notes)
             self.save_to_file(mcq, subject, f"mcq_v{i}")
@@ -69,6 +70,30 @@ class LargeContentGenerator:
             return summary_str
         else:
             print(summary_str)
+
+    def improve_content(self, subject, file_versions):
+        content_by_type = {"prose": [], "anki": [], "mcq": []}
+
+        # Load the content from the specified file versions and sort by type
+        for file_version in file_versions:
+            filename = f"{subject.replace(' ', '_')}_{file_version}.json"
+            subject_dir = os.path.join(self.data_path, subject.replace(" ", "_"))
+
+            with open(os.path.join(subject_dir, filename), "r") as file:
+                content = json.load(file)
+                content_type = file_version.split("_")[
+                    0
+                ]  # Extract content type from file version
+                content_by_type[content_type].append(content)
+
+        # Use the generator's combine function to generate improved content for each type
+        improved_content = {
+            content_type: self.generator.combine(contents)
+            for content_type, contents in content_by_type.items()
+            if contents
+        }
+
+        return improved_content
 
 
 if __name__ == "__main__":

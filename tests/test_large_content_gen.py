@@ -1,8 +1,11 @@
+import io
 import os
+from unittest import mock
 from unittest.mock import Mock, mock_open, patch
 
 import pytest
 
+import anki
 from large_content_generator import LargeContentGenerator
 
 
@@ -31,7 +34,7 @@ def test_generate_and_save(mocked_anki):
         gen.generate_and_save("dummy_subject")
 
     assert (
-        gen.save_to_file.call_count == 15
+        gen.save_to_file.call_count == 9
     )  # Check if function was called 15 times (5 for each content type)
 
 
