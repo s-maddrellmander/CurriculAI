@@ -1,6 +1,7 @@
 import json
 import os
 import time
+from typing import List
 
 from tqdm import tqdm
 
@@ -8,7 +9,7 @@ from anki import AnkiCardGenerator
 
 
 class LargeContentGenerator:
-    def __init__(self, model_name="gpt-3.5-turbo"):
+    def __init__(self, model_name="gpt-3.5-turbo-16k-0613"):
         self.generator = AnkiCardGenerator(model_name=model_name)
         self.data_path = "data"
         self.notes = "Generate advanced level content, intended for postgraduate expert students."
@@ -71,29 +72,30 @@ class LargeContentGenerator:
         else:
             print(summary_str)
 
-    def improve_content(self, subject, file_versions):
+    def improve_content(self, subject: str, file_versions: List[str]):
         content_by_type = {"prose": [], "anki": [], "mcq": []}
 
         # Load the content from the specified file versions and sort by type
-        for file_version in file_versions:
-            filename = f"{subject.replace(' ', '_')}_{file_version}.json"
-            subject_dir = os.path.join(self.data_path, subject.replace(" ", "_"))
+        for content_type in content_by_type.keys():
+            for version in file_versions:
+                filename = f"{subject.replace(' ', '_')}_{content_type}_{version}.json"
+                subject_dir = os.path.join(self.data_path, subject.replace(" ", "_"))
 
-            with open(os.path.join(subject_dir, filename), "r") as file:
-                content = json.load(file)
-                content_type = file_version.split("_")[
-                    0
-                ]  # Extract content type from file version
-                content_by_type[content_type].append(content)
+                with open(os.path.join(subject_dir, filename), "r") as file:
+                    content = json.load(file)
+                    content_by_type[content_type].append(content)
 
         # Use the generator's combine function to generate improved content for each type
-        improved_content = {
-            content_type: self.generator.combine(contents)
-            for content_type, contents in content_by_type.items()
-            if contents
-        }
+        for content_type, contents in content_by_type.items():
+            if contents:  # Check if contents exist
+                # Combine the contents
+                improved_content = self.generator.combine(contents)
 
-        return improved_content
+                # Save the improved content to a new file
+                file_prefix = f"{content_type}_improved"
+                self.save_to_file(improved_content, subject, file_prefix)
+
+        print(f"Improved content for {subject} has been generated and saved.")
 
 
 if __name__ == "__main__":
@@ -101,4 +103,5 @@ if __name__ == "__main__":
     subjects = generator.read_subjects("subjects.txt")
     for subject in tqdm(subjects, desc="Sylabus Progress:"):
         generator.generate_and_save(subject)
+        generator.improve_content(subject, ["v1", "v2", "v3"])
     generator.print_summary()

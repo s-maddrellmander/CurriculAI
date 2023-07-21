@@ -235,7 +235,7 @@ class AnkiCardGenerator:
                 },
                 {
                     "role": "user",
-                    "content": f"Look at these possible variations of the content, take the best from each of these and produce the best content possible: {combined_input}",
+                    "content": f"I have multiple versions of content here: {combined_input}. Can you generate a single improved version by integrating the best parts of each? Just provde the respone, no preamble.",
                 },
             ],
         )
