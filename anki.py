@@ -140,7 +140,9 @@ class AnkiCardGenerator:
         self.logger.info(f"Generated content for subject: {subject}")
         return result
 
-    def generate_question(self, topic, previous_questions=None, aspect=None):
+    def generate_question(
+        self, topic, notes=None, previous_questions=None, aspect=None
+    ):
         instruction = f"Generate a unique question about {topic}"
         if aspect:
             instruction += f", focusing on the aspect of {aspect}"
@@ -148,6 +150,8 @@ class AnkiCardGenerator:
             instruction += ". Avoid duplicating the following questions: " + ", ".join(
                 previous_questions
             )
+        if notes:
+            instruction += f". Consider these notes: {notes}"
 
         response = openai.ChatCompletion.create(
             model=self.model_name,
@@ -164,9 +168,13 @@ class AnkiCardGenerator:
             self.questions_asked.add(new_question)
             return new_question
         else:
-            return self.generate_question(topic, previous_questions, aspect)
+            return self.generate_question(topic, previous_questions, aspect, notes)
 
-    def generate_answers(self, question_prompt, num_options=5):
+    def generate_answers(self, question_prompt, notes=None, num_options=5):
+        instruction = f"For the question: {question_prompt}, generate one correct answer and {num_options - 1} incorrect but plausible answers. The answers should be closely related to the question topic, but clearly incorrect upon close examination."
+        if notes:
+            instruction += f" Consider these notes: {notes}"
+
         response = openai.ChatCompletion.create(
             model=self.model_name,
             messages=[
@@ -174,10 +182,7 @@ class AnkiCardGenerator:
                     "role": "system",
                     "content": "You are an intelligent assistant that's been trained on a diverse range of internet text. You're skilled in generating advanced, postgraduate-level multiple choice questions.",
                 },
-                {
-                    "role": "user",
-                    "content": f"For the question: {question_prompt}, generate one correct answer and {num_options - 1} incorrect but plausible answers. The answers should be closely related to the question topic, but clearly incorrect upon close examination.",
-                },
+                {"role": "user", "content": instruction},
             ],
         )
         raw_answers = response.choices[0]["message"]["content"].strip()
@@ -194,11 +199,11 @@ class AnkiCardGenerator:
             answer.strip() for answer in processed_answers if answer.strip()
         ]  # Remove empty answers and extra spaces
 
-    def generate_MCQs(self, topic, num_questions=5, num_options=5):
+    def generate_MCQs(self, topic, notes=None, num_questions=5, num_options=5):
         mcqs = []
         for _ in range(num_questions):
-            question_prompt = self.generate_question(topic, self.questions_asked)
-            answers = self.generate_answers(question_prompt, num_options)
+            question_prompt = self.generate_question(topic, notes, self.questions_asked)
+            answers = self.generate_answers(question_prompt, notes, num_options)
             correct_answer = answers[0]
             random.shuffle(answers)
             correct_index = answers.index(correct_answer)
@@ -210,3 +215,35 @@ class AnkiCardGenerator:
                 }
             )
         return mcqs, json.dumps(mcqs)
+
+    def combine(self, *inputs):
+        # Assume inputs are lists of dictionaries. We join the contents of each input.
+        combined_input = " ".join(
+            [
+                json.dumps(input_dict)
+                for input_list in inputs
+                for input_dict in input_list
+            ]
+        )
+
+        response = openai.ChatCompletion.create(
+            model=self.model_name,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an intelligent assistant that's been trained on a diverse range of internet text. You're skilled in generating advanced, postgraduate-level content.",
+                },
+                {
+                    "role": "user",
+                    "content": f"I have multiple versions of content here: {combined_input}. Can you generate a single improved version by integrating the best parts of each? Just provde the respone, no preamble.",
+                },
+            ],
+        )
+
+        combined_content = response.choices[0]["message"]["content"].strip()
+
+        return combined_content
+
+    def save_to_file(self, data, path, filename):
+        with open(os.path.join(path, filename), "w") as outfile:
+            json.dump(data, outfile)
