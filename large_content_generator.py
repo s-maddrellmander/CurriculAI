@@ -100,7 +100,7 @@ class LargeContentGenerator:
 
 if __name__ == "__main__":
     generator = LargeContentGenerator()
-    subjects = generator.read_subjects("subjects.txt")
+    subjects = generator.read_subjects("short_subjects.txt")
     for subject in tqdm(subjects, desc="Sylabus Progress:"):
         generator.generate_and_save(subject)
         generator.improve_content(subject, ["v1", "v2", "v3"])
