@@ -35,9 +35,7 @@ def test_generate_and_save(mocked_anki):
         mocked_tqdm.side_effect = lambda x, **kwargs: x  # Bypass tqdm
         gen.generate_and_save("dummy_subject")
 
-    assert (
-        gen.save_to_file.call_count == 9
-    )  # Check if function was called 15 times (5 for each content type)
+    assert gen.save_to_file.call_count == 2
 
 
 @patch("large_content_generator.AnkiCardGenerator")
@@ -96,16 +94,17 @@ class TestLargeContentGenerator(unittest.TestCase):
 
         # Check if the correct filenames were generated and the correct files were opened
         expected_filenames = [
-            "data/Subject_Name/Subject_Name_prose_v1.json",
-            "data/Subject_Name/Subject_Name_prose_v2.json",
-            "data/Subject_Name/Subject_Name_prose_v3.json",
-            "data/Subject_Name/Subject_Name_anki_v1.json",
-            "data/Subject_Name/Subject_Name_anki_v2.json",
-            "data/Subject_Name/Subject_Name_anki_v3.json",
-            "data/Subject_Name/Subject_Name_mcq_v1.json",
-            "data/Subject_Name/Subject_Name_mcq_v2.json",
-            "data/Subject_Name/Subject_Name_mcq_v3.json",
+            "data/Subject_Name/Subject_Name_prose_v1.txt",
+            "data/Subject_Name/Subject_Name_prose_v2.txt",
+            "data/Subject_Name/Subject_Name_prose_v3.txt",
+            "data/Subject_Name/Subject_Name_anki_v1.csv",
+            "data/Subject_Name/Subject_Name_anki_v2.csv",
+            "data/Subject_Name/Subject_Name_anki_v3.csv",
+            "data/Subject_Name/Subject_Name_mcq_v1.csv",
+            "data/Subject_Name/Subject_Name_mcq_v2.csv",
+            "data/Subject_Name/Subject_Name_mcq_v3.csv",
         ]
+
         actual_filenames = [call[0][0] for call in mock_file.call_args_list]
         self.assertEqual(expected_filenames, actual_filenames)
 

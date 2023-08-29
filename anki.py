@@ -127,16 +127,25 @@ class AnkiCardGenerator:
                 self.logger.info(line)
 
     def generate(
-        self, subject, details="", verbose=True, format="anki", path="data/", extra=""
+        self,
+        subject,
+        details="",
+        verbose=True,
+        format="anki",
+        path="data/",
+        extra="",
+        save=True,
     ):
         """Generates content for the given subject and details, and saves it to a CSV file."""
         template = self.template if format == "anki" else self.prose_template
         result = self.__generate_content(subject, details, template, extra)
         self.log_result(result, verbose)
         if format == "anki":
-            self.__save_csv(result, os.path.join(path, subject.replace(" ", "_")))
+            if save is True:
+                self.__save_csv(result, os.path.join(path, subject.replace(" ", "_")))
         else:  # format is "prose"
-            self.__save_txt(result, os.path.join(path, subject.replace(" ", "_")))
+            if save is True:
+                self.__save_txt(result, os.path.join(path, subject.replace(" ", "_")))
         self.logger.info(f"Generated content for subject: {subject}")
         return result
 
@@ -216,7 +225,7 @@ class AnkiCardGenerator:
             )
         return mcqs, json.dumps(mcqs)
 
-    def combine(self, *inputs):
+    def combine(self, *inputs, model_name=None):
         # Assume inputs are lists of dictionaries. We join the contents of each input.
         combined_input = " ".join(
             [
@@ -225,7 +234,8 @@ class AnkiCardGenerator:
                 for input_dict in input_list
             ]
         )
-
+        if model_name is not None:
+            self.model_name = model_name
         response = openai.ChatCompletion.create(
             model=self.model_name,
             messages=[

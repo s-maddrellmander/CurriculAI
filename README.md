@@ -7,6 +7,46 @@
 
 CurriculAI is an AI-based educational tool that leverages the power of Langchain and OpenAI LLMs to transform user resources into accessible and engaging learning materials.
 
+## Quick Start
+- **Set up environment**
+```bash
+git clone https://github.com/s-maddrellmander/CurriculAI.git
+cd CurriculAI
+python3 -m virtualenv env
+source env/bin/activate
+pip install -r requirements.txt
+```
+
+- **Generate Sylabus**
+    - Generate a `sylabus.txt` file. 
+    - Assume the list will look like the example below:
+
+    (`short_subjects.txt`)
+    ```
+    1. Introduction to Machine Learning
+    2. Basics of Python for Machine Learning
+    3. Supervised Learning
+    4. Unsupervised Learning
+    ```
+
+- **Generate Content**
+    ```bash
+    python large_content_gen.py
+    ```
+    - This will generate by default prose and flashcard style questions on each topic / heading in the sylabus file
+
+- **(Optional) Convert format**
+    ```bash
+    python convert_csv_to_json.py
+    ```
+    - This converts all the saved csv files into appropriate JSON files for flashcard use later
+    - `WARNING` It will iteratively step through all directories in the saved data location and pull all csv files.
+- **(Optional) Sync with database**
+    ```bash
+    python upload_to_firebase.py
+    ```
+    - This assumes you have the necessary firebase authetication file locally in the directory - this needs to be updated.
+
 ## Features
 
 - **Vectorised Database**: CurriculAI tokenises and stores all relevant resources into a vectorised database, ensuring efficient information retrieval and content generation.
