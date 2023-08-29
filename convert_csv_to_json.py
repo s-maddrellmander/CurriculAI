@@ -2,31 +2,57 @@ import csv
 import json
 import os
 
-data_directory = "data"
-output_data = []
 
-# Iterate through each folder in the data directory
-for folder_name in os.listdir(data_directory):
-    folder_path = os.path.join(data_directory, folder_name)
+def get_file_data(file_path, file_type):
+    """
+    Reads the file content and returns data in desired format.
+    """
+    data = []
 
-    # Check if the path is a directory
-    if os.path.isdir(folder_path):
-        # Extract deck name from folder name
-        deck_name = folder_name.split("_", 1)[-1].replace("_", " ")
+    if file_type == "anki_v1.csv":
+        with open(file_path, "r") as f:
+            reader = csv.reader(f)
+            deck_name = next(reader)[0]
+            cards = [{"front": row[0], "back": row[1]} for row in reader]
+            data.append({"deckName": deck_name, "cards": cards})
 
-        # Iterate through each file in the folder
-        for file_name in os.listdir(folder_path):
-            if file_name.endswith("anki_v1.csv"):
-                file_path = os.path.join(folder_path, file_name)
+    elif file_type == "prose_v1.txt":
+        with open(file_path, "r") as f:
+            text = f.read()
+            chapter_name = os.path.basename(file_path).replace("_prose_v1.txt", "")
+            data.append({"chapterName": chapter_name, "text": text})
 
-                # Read CSV file and extract cards
-                with open(file_path, "r", encoding="utf-8") as csv_file:
-                    reader = csv.reader(csv_file, delimiter=";")
-                    cards = [{"front": row[0], "back": row[1]} for row in reader]
+    return data
 
-                # Add deck and cards to the output data
-                output_data.append({"deckName": deck_name, "cards": cards})
 
-# Write JSON file
-with open("your_data.json", "w", encoding="utf-8") as json_file:
-    json.dump(output_data, json_file, ensure_ascii=False, indent=4)
+def process_directory(folder_path, output_file, file_suffix):
+    """
+    Iterates through the directory, reads files with desired suffix, and
+    aggregates the data to write to an output file.
+    """
+    all_data = []
+
+    for file_name in os.listdir(folder_path):
+        if file_name.endswith(file_suffix):
+            file_path = os.path.join(folder_path, file_name)
+            all_data.extend(get_file_data(file_path, file_suffix))
+
+    with open(output_file, "w") as out:
+        json.dump(all_data, out)
+
+
+def main(folder_path):
+    process_directory(folder_path, "anki_data.json", "anki_v1.csv")
+    process_directory(folder_path, "prose_data.json", "prose_v1.txt")
+
+
+if __name__ == "__main__":
+    import sys
+
+    try:
+        folder_path = sys.argv[1]
+    except IndexError:
+        print("Usage: python script_name.py <FOLDER_PATH>")
+        sys.exit(1)
+
+    main(folder_path)

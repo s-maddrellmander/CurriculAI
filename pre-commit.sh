@@ -1,4 +1,4 @@
 export PYTHONPATH=:~/Projects/CurriculAI
 isort --profile black *.py tests/*
 black .
-pytest --cov=. --cov-report term --cov-report html
+pytest -n 10 --cov=. --cov-report term --cov-report html
