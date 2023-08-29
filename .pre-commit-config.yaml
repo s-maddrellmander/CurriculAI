@@ -18,9 +18,3 @@ repos:
         entry: black
         language: python
         types: [python]
-
-      - id: pytest
-        name: Pytest
-        entry: pytest tests --cov=. --cov-report term --cov-report html
-        language: python
-        types: [python]

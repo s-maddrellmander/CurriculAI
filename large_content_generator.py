@@ -149,7 +149,10 @@ class LargeContentGenerator:
 
 if __name__ == "__main__":
     generator = LargeContentGenerator(model_name="gpt-4")
-    subjects = generator.read_subjects("subjects_enzymes.txt")
+    subjects = generator.read_subjects("short_subjects.txt")
+    generator.notes = (
+        "Generate advanced level content, intended for postgraduate expert students."
+    )
     for subject in tqdm(subjects, desc="Sylabus Progress:"):
         generator.generate_and_save(subject)
         # generator.improve_content(subject, ["v1"])  # generate just a single version

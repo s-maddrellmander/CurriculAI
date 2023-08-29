@@ -20,7 +20,7 @@ def custom_sort(s):
 
 
 # Read subjects.txt file and prepare the list of directories
-with open("subjects_enzymes.txt", "r") as f:
+with open("subjects_contrastive.txt", "r") as f:
     directories = sorted(
         [line.strip().replace(" ", "_") for line in f], key=custom_sort
     )
